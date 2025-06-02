@@ -1,7 +1,7 @@
 # AER-SwinT
 The source code for "Tumor Microenvironment-guided Deep Learning Predicts Chemotherapy and Immunotherapy Response in Gastric Cancer with Attention Enhanced Residual Swin-Transformer: A Multicentric Study"
 
-<div align=center><img width="1200" height="380" src="https://github.com/sangst-lab/AER-SwinT/tree/main/figures/Framework%20main.png"/></div>
+<div align=center><img width="1200" height="380" src="https://github.com/sangst-lab/AER-SwinT/blob/main/figures/Framework%20main.png"/></div>
 <p align="left"> 
 The overview of our method. 
 </p>
