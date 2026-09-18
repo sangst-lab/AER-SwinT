@@ -172,6 +172,10 @@ class GastricCarcinoma_Dataset(Dataset):
             print("Alert: found different affine 1")
 
         # Crop image and mask to 224x224 around mask center
+        if not np.any(mask_gastcar):
+            raise ValueError("Tumor mask is empty.")
+        organ_HU = np.pad(organ_HU, ((112, 112), (112, 112)), mode="constant")
+        mask_gastcar = np.pad(mask_gastcar, ((112, 112), (112, 112)), mode="constant")
         w_left, w_right, h_up, h_down=self.crop_points(torch.from_numpy(mask_gastcar))
         mask_gastcar=mask_gastcar[h_up:h_down,w_left:w_right]
         organ_HU=organ_HU[h_up:h_down,w_left:w_right]
@@ -209,7 +213,7 @@ class GastricCarcinoma_Dataset(Dataset):
         return len(self.images_fps)
 
     # Clip and normalize CT values
-    def HU_clip_min_max(self, image, min_HU=0, max_HU=300.0):
+    def HU_clip_min_max(self, image, min_HU=-150, max_HU=150.0):
         np_img = image
         np_img = np.clip(np_img, min_HU, max_HU).astype(np.float32)
         return np_img

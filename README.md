@@ -1,7 +1,7 @@
 # AER-SwinT
 The source code for "Tumor Microenvironment-guided Deep Learning Predicts Chemotherapy and Immunotherapy Response in Gastric Cancer with Attention Enhanced Residual Swin-Transformer: A Multicentric Study"
 
-<div align=center><img width="1200" height="380" src="https://github.com/sangst-lab/AER-SwinT/blob/main/figures/Framework%20main.png"/></div>
+<div align=center><img width="1200" height="380" src="figures/Framework%20main.png"/></div>
 <p align="left"> 
 The overview of our method. 
 </p>
@@ -9,15 +9,7 @@ The overview of our method.
 
 
 ## Requirements
-* albumentations==1.0.0
-* inplace_abn==1.1.0
-* matplotlib==3.4.2
-* numpy==1.22.2
-* opencv_python_headless==4.5.2.54
-* pretrainedmodels==0.7.4
-* segmentation_models_pytorch==0.2.0
-* torch==1.8.0
-* torchvision==0.9.0
+Python 3.10 is required. The script uses CUDA when available and otherwise runs on CPU. GPU acceleration requires an NVIDIA GPU with a CUDA 12.8-compatible driver. Package versions are pinned in `requirements.txt`.
 
 ## Data
 In order to make it easier for the readers to reproduce and understand the code, I have provided a small amount of example data used in our experiment under the **dataset** folder, where provides six training, validation and test images.
@@ -30,6 +22,9 @@ In order to make it easier for the readers to reproduce and understand the code,
 ## Run the codes
 Install the environment.
 ```bash
+conda create -n aer-swint python=3.10 pip -y
+conda activate aer-swint
+pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
