@@ -71,7 +71,7 @@ class Loss_main_sub1_sub2_task(base.Loss):
         loss_sub1 = self.loss_sub1(prediction_sub1, target_sub1)
         loss_sub2 = self.loss_sub2(prediction_sub2, target_sub2)
         #loss= loss_main + 0.5*loss_sub1 + 0.5*loss_sub2
-        loss = loss_main + loss_sub1 + loss_sub2
+        loss = loss_main + 0.5 * loss_sub1 + 0.5 * loss_sub2
         return loss, loss_sub1, loss_sub2
 
 
