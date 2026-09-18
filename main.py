@@ -1,11 +1,13 @@
 import os
 import torch
 import csv
+from matplotlib.figure import Figure
+from sklearn.metrics import roc_curve
 from torch.optim.lr_scheduler import MultiStepLR
 from torch.utils.data import DataLoader
 
 # Import model definition
-from models.swin_transformer_multi_tasks import *
+from model.swin_transformer_multi_tasks import *
 
 # Import dataset definition
 from data.GastricCarcinoma import *
@@ -17,15 +19,16 @@ import warnings
 warnings.filterwarnings('ignore')  # Ignore all warnings for cleaner output
 
 # ==== Configurations ====
-DEVICE = 'cuda:0'
+DEVICE = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 CHECKPOINT_DIR = "./checkpoints/"
 BEST_MODEL_PATH = os.path.join(CHECKPOINT_DIR, "Transformer.pth")
-BATCH_SIZE = 2
-LR = 0.0001
-MILESTONES = [50, 100, 200]
-GAMMA = 0.5
+BATCH_SIZE = 16
+LR = 0.001
+MILESTONES = [200, 300, 400]
+GAMMA = 0.1
 
 def main():
+    torch.manual_seed(0)
     # ==== Directory Preparation ====
     os.makedirs(CHECKPOINT_DIR, exist_ok=True)
     print(f"The best model's location is {CHECKPOINT_DIR}.")
@@ -53,7 +56,8 @@ def main():
     model = SwinTransformer_MulTasks(img_size=224, window_size=7, in_chans=1, num_classes=2, other_feature_num=8, ape=True)
     model.to(DEVICE)
     loss_fn = Loss_main_sub1_sub2_task()
-    optimizer = torch.optim.Adam(model.parameters(), lr=LR, weight_decay=0e-5)
+    optimizer = torch.optim.SGD(model.parameters(), lr=LR, momentum=0.9, weight_decay=5e-4)
+    scheduler = MultiStepLR(optimizer, milestones=MILESTONES, gamma=GAMMA)
 
     train_epoch = TrainEpoch(model, loss=loss_fn, optimizer=optimizer, device=DEVICE, verbose=True)
     val_epoch = ValidEpoch(model=model, loss=loss_fn, device=DEVICE)
@@ -63,7 +67,7 @@ def main():
     best_auc_sub1 = 0
     best_auc_sub2 = 0
 
-    for epoch in range(6):
+    for epoch in range(400):
         print(f"Epoch {epoch} ...")
         train_logs = train_epoch.run(train_loader)
         if epoch % 2 == 0:
@@ -80,6 +84,7 @@ def main():
                     val_logs["main_task"]["AUC"], val_logs["sub1_task"]["AUC"], val_logs["sub2_task"]["AUC"]))
                 print("Best Sub1 AUC: {:.3f}\tBest Sub2 AUC: {:.3f}".format(best_auc_sub1, best_auc_sub2))
                 torch.save(model.state_dict(), BEST_MODEL_PATH)
+        scheduler.step()
 
     # ==== Evaluation ====
     model = SwinTransformer_MulTasks(img_size=224, window_size=7, in_chans=1, num_classes=2, other_feature_num=8, ape=True)
@@ -87,7 +92,7 @@ def main():
     model.to(DEVICE)
     test_epoch = ValidEpoch(model=model, loss=loss_fn, device=DEVICE)
     logs_final_test = test_epoch.run(test_loader)
-    logs_final_validation = val_epoch.run(val_loader)
+    logs_final_validation = test_epoch.run(val_loader)
 
     # ==== Result Output ====
     with open(BEST_MODEL_PATH + "results.csv", 'w+', newline='') as csv_file:
@@ -102,17 +107,28 @@ def main():
 
     print("-------------------------Validation Results--------------------------")
     print("{:>4s}\t{:>4s}\t{:>4s}\t{:>4s}\t{:>4s}\t{:>4s}".format(
-        "AUC", "ACC", "PPV", "Sensitivity", "Fscore", "Sensitivity"))
+        "AUC", "ACC", "PPV", "Sensitivity", "Fscore", "Specificity"))
     print("{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}".format(
         logs_final_validation["main_task"]["AUC"], logs_final_validation["main_task"]["ACC"], logs_final_validation["main_task"]["PPV"],
-        logs_final_validation["main_task"]["Sensitivity"], logs_final_validation["main_task"]["Fscore"], logs_final_validation["main_task"]["Sensitivity"]))
+        logs_final_validation["main_task"]["Sensitivity"], logs_final_validation["main_task"]["Fscore"], logs_final_validation["main_task"]["Specificity"]))
 
     print("-------------------------Testing Results--------------------------")
     print("{:>4s}\t{:>4s}\t{:>4s}\t{:>4s}\t{:>4s}\t{:>4s}".format(
-        "AUC", "ACC", "PPV", "Sensitivity", "Fscore", "Sensitivity"))
+        "AUC", "ACC", "PPV", "Sensitivity", "Fscore", "Specificity"))
     print("{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3f}".format(
         logs_final_test["main_task"]["AUC"], logs_final_test["main_task"]["ACC"], logs_final_test["main_task"]["PPV"],
-        logs_final_test["main_task"]["Sensitivity"], logs_final_test["main_task"]["Fscore"], logs_final_test["main_task"]["Sensitivity"]))
+        logs_final_test["main_task"]["Sensitivity"], logs_final_test["main_task"]["Fscore"], logs_final_test["main_task"]["Specificity"]))
+
+    fig = Figure()
+    ax = fig.subplots()
+    for name, logs in (("Validation", logs_final_validation), ("Test", logs_final_test)):
+        task_logs = logs["main_task"]
+        fpr, tpr, _ = roc_curve(task_logs["Targets"], task_logs["Probs"])
+        ax.plot(fpr, tpr, label=f"{name} (AUC = {task_logs['AUC']:.3f})")
+    ax.plot([0, 1], [0, 1], "k--")
+    ax.set(xlabel="False positive rate", ylabel="True positive rate", title="Main-task ROC", xlim=(0, 1), ylim=(0, 1.05))
+    ax.legend(loc="lower right")
+    fig.savefig(os.path.join(CHECKPOINT_DIR, "ROC_main_task.png"), dpi=150, bbox_inches="tight")
 
 if __name__ == '__main__':
     main()
