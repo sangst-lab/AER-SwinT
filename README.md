@@ -20,8 +20,6 @@ Four unique demo cases are provided under `image_samples/`. The same four cases 
 **main.py**: The codes for training, validating and testing.
 
 ## Run the codes
-**Installation note for v1.1.0 (headless Linux servers):** In a fresh environment, remove `opencv-python==4.11.0.86` from `requirements.txt` and retain `opencv-python-headless==4.11.0.86` before running `pip install -r requirements.txt`. Both packages provide `cv2` and must not be installed together. The headless package avoids dependencies on graphical libraries.
-
 Install the environment.
 ```bash
 conda create -n aer-swint python=3.10 pip -y
