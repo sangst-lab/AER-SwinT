@@ -12,7 +12,7 @@ The overview of our method.
 Python 3.10 is required. The script uses CUDA when available and otherwise runs on CPU. GPU acceleration requires an NVIDIA GPU with a CUDA 12.8-compatible driver. Package versions are pinned in `requirements.txt`.
 
 ## Data
-In order to make it easier for the readers to reproduce and understand the code, I have provided a small amount of example data used in our experiment under the **dataset** folder, where provides six training, validation and test images.
+Four unique demo cases are provided under `image_samples/`. The same four cases are reused across the training, validation, and test splits (four case folders per split) to demonstrate workflow execution.
 
 ## File declaration
 
@@ -32,3 +32,4 @@ Train and test the model.
 ```bash
 python main.py
 ```
+

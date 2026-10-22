@@ -29,7 +29,6 @@ multidict==6.4.3
 networkx==3.3
 nibabel==5.3.2
 numpy==2.1.2
-opencv-python==4.11.0.86
 opencv-python-headless==4.11.0.86
 openpyxl==3.1.5
 packaging==25.0
